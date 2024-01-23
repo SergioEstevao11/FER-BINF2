@@ -4,7 +4,7 @@ import random
 from tqdm import tqdm
 
 num_steps = 100  # You can adjust this value
-k = 15
+k = 15 # You can adjust this value
 nucleotides = ['A', 'C', 'G', 'T']
 states = {}
 
@@ -31,7 +31,6 @@ def generate_probabilities(filename):
     num_states = len(states)
     probabilities = np.zeros((num_states, len(nucleotides)))
 
-    # Calculate transition probabilities
     with open(filename) as handle:
         for record in tqdm(SeqIO.parse(handle, "fastq"), desc="Calculating probabilities"):
             seq = record.seq
@@ -45,7 +44,6 @@ def generate_probabilities(filename):
                 probabilities[fromId, nucleotide_index] += 1
 
 
-    # Normalize the probabilities
     probabilities = probabilities / probabilities.sum(axis=1)[:, np.newaxis]
 
     return probabilities
@@ -69,7 +67,7 @@ def generate_genome(num_steps, probabilities):
         next_nucleotide = nucleotides[nucleotide_index]
 
         genome += next_nucleotide
-        current_state = current_state[1:] + next_nucleotide  # Update the kmer with the new nucleotide
+        current_state = current_state[1:] + next_nucleotide  
 
     return genome
 
