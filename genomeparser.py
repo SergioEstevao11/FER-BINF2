@@ -2,15 +2,15 @@ from Bio import SeqIO
 import numpy as np
 import random
 from tqdm import tqdm
+import sys
 
-num_steps = 100  # You can adjust this value
-k = 15 # You can adjust this value
+num_steps = 1000  # Adjust as needed
 nucleotides = ['A', 'C', 'G', 'T']
 states = {}
 
-def parse_genome(filename):
+
+def parse_genome(filename, k):
     kmer = ""
-    #filename = "data/ecoli_PB_small.fastq"
     with open(filename) as handle:
         for record in tqdm(SeqIO.parse(handle, "fastq"), desc="Building states"):
             seq = record.seq
@@ -27,7 +27,7 @@ def parse_genome(filename):
                 if kmer not in states:
                     states[kmer] = len(states)
 
-def generate_probabilities(filename):
+def generate_probabilities(filename, k):
     num_states = len(states)
     probabilities = np.zeros((num_states, len(nucleotides)))
 
@@ -43,9 +43,7 @@ def generate_probabilities(filename):
 
                 probabilities[fromId, nucleotide_index] += 1
 
-
     probabilities = probabilities / probabilities.sum(axis=1)[:, np.newaxis]
-
     return probabilities
 
 def generate_genome(num_steps, probabilities):
@@ -79,13 +77,18 @@ def export_genome(genome, output_file="output.fa", header="GEN_genome"):
         for i in range(0, len(genome_str), 60):
             file.write(genome_str[i:i+60] + "\n")
 
-
 if __name__ == "__main__":
-    gen_filename = "data/ecoli_PB_small.fastq"
+    if len(sys.argv) < 3:
+        print("Usage: python genomeparser.py <fastq_file> <kmer_size>")
+        sys.exit(1)
 
-    parse_genome(gen_filename)
-    probabilities = generate_probabilities(gen_filename)
-    generated_genome = generate_genome(num_steps, probabilities)
+
+    gen_filename = sys.argv[1]
+    k = int(sys.argv[2])
+
+    parse_genome(gen_filename, k)
+    probabilities = generate_probabilities(gen_filename, k)
+    generated_genome = generate_genome(num_steps-k, probabilities)
 
     export_genome(generated_genome)
     print(generated_genome)
